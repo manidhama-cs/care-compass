@@ -57,7 +57,7 @@ class SessionStore {
       missingInformation: ['main_concern', 'target_person'],
       screeningStatus: 'collecting_information',
       questionCount: 0,
-      maxQuestions: 3,
+      maxQuestions: 5,
       nextQuestion: null,
       suggestedOptions: [],
       careType: null,

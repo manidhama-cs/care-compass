@@ -142,15 +142,39 @@ export function runSessionScreening(request: SessionTriageRequest): SessionTriag
   }
 
   // If user denied symptoms or confirmed safety
-  if (extracted.deniedSymptoms.length > 0 || /safe|theek\s*hai|koi\s*dikkat\s*nahi|nahi|no\b/i.test(user_input)) {
+  if (extracted.deniedSymptoms.length > 0 || /safe|theek\s*hai|koi\s*dikkat\s*nahi|nahi|no\b|saans\s*theek|normal/i.test(user_input)) {
     session.knownAnswers['red_flags_cleared'] = true;
   }
 
-  // Check if user answered preference question (teleconsult vs medic)
-  if (/doctor|video\s*consult|online|सलाह/i.test(user_input)) {
+  // Progression & Severity signals
+  if (
+    extracted.progression !== 'unknown' ||
+    extracted.severity !== 'unknown' ||
+    /badh\s*raha|waisa\s*hi|constant|mild|tez|halka|halki|jyada|worsening|stable|improving/i.test(user_input)
+  ) {
+    session.knownAnswers['progression_known'] = true;
+  }
+
+  // Associated symptoms and Comorbidities check
+  if (
+    /thand|chills|khansi|cough|gala|throat|ulti|vomiting|dast|loose|sugar|diabetes|bp|hypertension|purani\s*bimari|sirf\s*bukhar|koi\s*aur\s*dikkat\s*nahi|kuch\s*nahi|none|chal-phir|bistar/i.test(user_input)
+  ) {
+    session.knownAnswers['associated_symptoms_checked'] = true;
+  }
+
+  // Check if user answered preference question (teleconsult vs medic vs nurse vs lab)
+  if (/doctor|video\s*consult|online|सलाह|teleconsult/i.test(user_input)) {
     session.knownAnswers['care_mode_preference'] = 'teleconsult';
     session.requestedService = 'doctor_consult';
-  } else if (/medic|home\s*visit|checkup|nurse|नर्स|विजिट/i.test(user_input)) {
+  } else if (/nurse|injection|dressing|patti|नर्स/i.test(user_input)) {
+    session.knownAnswers['care_mode_preference'] = 'home_nursing';
+    if (session.requestedService === 'none') {
+      session.requestedService = 'injection';
+    }
+  } else if (/lab\s*test|blood\s*test|sample|जांच|सैंपल/i.test(user_input)) {
+    session.knownAnswers['care_mode_preference'] = 'lab_test';
+    session.requestedService = 'lab_test';
+  } else if (/medic|home\s*visit|checkup|vitals|विजिट/i.test(user_input)) {
     session.knownAnswers['care_mode_preference'] = 'medic_visit';
   }
 

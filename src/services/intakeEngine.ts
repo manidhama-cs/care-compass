@@ -151,6 +151,18 @@ export function extractEntitiesFromConversation(
   if (/\b(joint\s*pain|knee\s*pain|ghutne\s*me\s*dard|back\s*pain|कमर\s*दर्द|घुटने\s*में\s*दर्द)\b/i.test(combined)) {
     symptoms.push('body_pain');
   }
+  if (/\b(chills|thand|shivering|kaanp|ठंड|कंपकंपी)\b/i.test(combined)) {
+    symptoms.push('chills');
+  }
+  if (/\b(dast|loose\s*motion|diarrhea|दस्त|पेट\s*खराब)\b/i.test(combined)) {
+    symptoms.push('diarrhea');
+  }
+  if (/\b(chakkhar|dizziness|giddiness|चक्कर)\b/i.test(combined)) {
+    symptoms.push('dizziness');
+  }
+  if (/\b(gala|sore\s*throat|throat\s*pain|गला\s*खराब)\b/i.test(combined)) {
+    symptoms.push('sore_throat');
+  }
 
   // 5. Duration Extraction
   let duration: string | null = null;
@@ -416,7 +428,7 @@ export function evaluateScreeningCompleteness(
       recommendedNextQuestion: {
         field: 'safety_screening',
         question: language === 'Hindi'
-          ? "क्या उन्हें सांस लेने में कोई तकलीफ, सीने में दर्द, या अत्यधिक कमजोरी/बेहोशी है? और बुखार कब से है?"
+          ? "क्या उन्हें सांस लेने में कोई तकलीफ, सीने में दर्द, या अत्यधिक कमजोरी/बेहोशी है? और बुखार/तकलीफ कब से है?"
           : language === 'Hinglish'
           ? "Kya unhe saans lene me takleef, chest pain, ya behoshi jaisa lag raha hai? Aur bukhar kitne din se hai?"
           : "Are they experiencing any shortness of breath, chest pain, or fainting? And how many days has the fever been present?",
@@ -426,8 +438,12 @@ export function evaluateScreeningCompleteness(
     };
   }
 
-  // Check 2: Duration / Severity if still missing
-  if (!duration && !knownAnswers['duration_known']) {
+  // If user explicitly requested teleconsultation or in-person with duration and safety cleared, resolve immediately
+  const hasCareMode = Boolean(knownAnswers['care_mode_preference']);
+  const hasDuration = Boolean(duration || knownAnswers['duration_known']);
+
+  // Check 2: Duration if still missing
+  if (!hasDuration) {
     missingFields.push('duration');
     return {
       isSufficient: false,
@@ -445,8 +461,93 @@ export function evaluateScreeningCompleteness(
     };
   }
 
-  // Check 3: Care Preference (Virtual Doctor vs In-Person Paramedic)
-  if (!knownAnswers['care_mode_preference']) {
+  // If user already specified teleconsultation explicitly along with duration & safety, resolve without extra questions
+  if (hasCareMode && hasDuration) {
+    return {
+      isSufficient: true,
+      missingFields: [],
+      recommendedNextQuestion: null,
+      reason: "Clinical symptoms, duration, safety clearance, and preferred care mode sufficiently collected."
+    };
+  }
+
+  // Check 3: Progression & Severity
+  const hasProgressionOrSeverity = sessionState.progression !== 'unknown' || sessionState.severity !== 'unknown' || Boolean(knownAnswers['progression_known']);
+  if (!hasProgressionOrSeverity) {
+    missingFields.push('progression_and_severity');
+    return {
+      isSufficient: false,
+      missingFields,
+      recommendedNextQuestion: {
+        field: 'progression_and_severity',
+        question: language === 'Hindi'
+          ? "यह तकलीफ बढ़ रही है, वैसी ही है, या कम हो रही है? और दर्द/बुखार कितना तीव्र (halka ya tez) है?"
+          : language === 'Hinglish'
+          ? "Yeh takleef badh rahi hai, waisi hi hai, ya kam ho rahi hai? Aur bukhar/dard kitna tez hai?"
+          : "Is the condition getting worse, staying the same, or improving? And how severe is the discomfort?",
+        suggestedOptions: ["Badh rahi hai (Getting worse)", "Waisi hi hai / Constant (Stable)", "Halka hai (Mild)", "Bohat tez hai (Severe)"]
+      },
+      reason: "Evaluating symptom trajectory and severity to calibrate clinical urgency."
+    };
+  }
+
+  // Check 4: Associated Symptoms & Pre-existing Conditions (comorbidities)
+  const hasAssociatedSymptomsChecked = Boolean(knownAnswers['associated_symptoms_checked']);
+  if (!hasAssociatedSymptomsChecked) {
+    missingFields.push('associated_symptoms');
+
+    let qText = language === 'Hindi'
+      ? "क्या बुखार के साथ ठंड लगना (chills), खांसी, उल्टी, या शरीर दर्द है? और क्या कोई पुरानी बीमारी (डायबिटीज/बीपी) है?"
+      : language === 'Hinglish'
+      ? "Kya bukhar ke saath thand lagna (chills), khansi, ulti, ya sharir dard hai? Aur kya koi purani bimari (Diabetes/BP) hai?"
+      : "Is there any shivering/chills, cough, vomiting, or body aches? And do they have conditions like Diabetes or High BP?";
+    let options = [
+      "Thand aur sharir dard hai",
+      "Khansi aur gale me dard hai",
+      "Sugar / High BP hai",
+      "Koi aur dikkat ya purani bimari nahi"
+    ];
+
+    if (symptoms.includes('acidity_gas') || symptoms.includes('vomiting')) {
+      qText = language === 'Hindi'
+        ? "क्या उल्टी (vomiting), दस्त (loose motions), या पेट में तेज मरोड़ है? खाना-पीना पच रहा है?"
+        : language === 'Hinglish'
+        ? "Kya ulti (vomiting), dast (loose motion), ya pet me tez marod hai? Khana-peena kaisa chal raha hai?"
+        : "Are they experiencing vomiting, loose stools, or severe stomach cramps? Are they able to eat?";
+      options = [
+        "Ulti aur dast hain",
+        "Khaana khate hi jalan/dard hota hai",
+        "Sirf halki gas/acidity hai",
+        "Aisi koi aur dikkat nahi hai"
+      ];
+    } else if (symptoms.includes('weakness') || symptoms.includes('body_pain') || sessionState.targetPerson === 'grandmother' || sessionState.targetPerson === 'grandfather') {
+      qText = language === 'Hindi'
+        ? "क्या वे खुद चल-फिर पा रहे हैं या बिस्तर पर हैं? और क्या उन्हें चक्कर या कमजोरी महसूस हो रही है?"
+        : language === 'Hinglish'
+        ? "Kya wo chal-phir pa rahe hain ya bistar par hain? Aur kya unhe chakkhar ya kamzori hai?"
+        : "Are they able to walk independently or bedridden? Are they experiencing any dizziness?";
+      options = [
+        "Chal-phir pa rahe hain, kamzori hai",
+        "Bistar par hain (Bedridden)",
+        "Chakkhar aa rahe hain",
+        "Sugar / BP ki dikkat hai"
+      ];
+    }
+
+    return {
+      isSufficient: false,
+      missingFields,
+      recommendedNextQuestion: {
+        field: 'associated_symptoms',
+        question: qText,
+        suggestedOptions: options
+      },
+      reason: "Screening for co-occurring clinical signs and pre-existing chronic conditions."
+    };
+  }
+
+  // Check 5: Care Preference (Virtual Doctor vs In-Person Paramedic)
+  if (!hasCareMode) {
     missingFields.push('care_mode_preference');
     return {
       isSufficient: false,
@@ -454,13 +555,32 @@ export function evaluateScreeningCompleteness(
       recommendedNextQuestion: {
         field: 'care_mode_preference',
         question: language === 'Hindi'
-          ? "क्या आप पहले ऑनलाइन डॉक्टर से वीडियो परामर्श लेना चाहेंगे, या घर पर स्वास्थ्य कर्मी (Medic) को बुलाना चाहते हैं?"
+          ? "आप क्या पसंद करेंगे — ऑनलाइन डॉक्टर से वीडियो परामर्श, या घर पर स्वास्थ्य कर्मी (Medic/Nurse) की विज़िट?"
           : language === 'Hinglish'
           ? "Aap pehle online doctor se video consult lena chahenge, ya ghar pe Medic checkup visit chahte hain?"
           : "Would you prefer a video doctor teleconsultation first, or an in-person medic home visit?",
         suggestedOptions: ["👨‍⚕️ Online Doctor Video Consult", "🩺 Medic Home Visit (BP/Vitals)", "🩸 Lab Blood Test at Home"]
       },
       reason: "Clarifying user preference between virtual teleconsult and in-person home visit."
+    };
+  }
+
+  // Check 6: Location for Home Visit
+  if (knownAnswers['care_mode_preference'] !== 'teleconsult' && !isLocationExplicit && !knownAnswers['location_confirmed']) {
+    missingFields.push('location');
+    return {
+      isSufficient: false,
+      missingFields,
+      recommendedNextQuestion: {
+        field: 'location',
+        question: language === 'Hindi'
+          ? "घर पर विज़िट के लिए आपका इलाका या पता क्या है (जैसे साकेत, द्वारका, नोएडा, गुरुग्राम)?"
+          : language === 'Hinglish'
+          ? "Home visit ke liye aapka area ya locality kya hai (jaise Saket, Dwarka, Noida, Gurugram)?"
+          : "Please confirm your locality or area for the home visit dispatch (e.g. Saket, Dwarka, Noida, Gurugram):",
+        suggestedOptions: ["📍 South Delhi (Saket, Hauz Khas)", "📍 West Delhi (Dwarka, Janakpuri)", "📍 Noida / Greater Noida", "📍 Gurugram / DLF"]
+      },
+      reason: "Confirming service locality for physical caregiver dispatch."
     };
   }
 

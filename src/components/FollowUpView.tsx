@@ -76,45 +76,48 @@ export const FollowUpView: React.FC<FollowUpViewProps> = ({
         </h2>
       </div>
 
-      {/* Big Quick-Answer Buttons [Haan / Yes] [Nahi / No] */}
-      <div className="grid grid-cols-2 gap-4 my-6">
-        <button
-          onClick={() => onAnswer("Haan")}
-          disabled={isProcessing}
-          className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xl sm:text-2xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer min-h-[64px]"
-        >
-          <CheckCircle className="w-7 h-7" />
-          <span>{t.yes}</span>
-        </button>
-
-        <button
-          onClick={() => onAnswer("Nahi")}
-          disabled={isProcessing}
-          className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-95 text-slate-800 dark:text-white font-bold text-xl sm:text-2xl shadow-sm transition-all cursor-pointer min-h-[64px]"
-        >
-          <XCircle className="w-7 h-7 text-slate-500" />
-          <span>{t.no}</span>
-        </button>
-      </div>
-
-      {/* Contextual Suggested Option Buttons (if provided) */}
+      {/* Contextual Options Grid (Prominent when available) */}
       {suggestedOptions && suggestedOptions.length > 0 && (
-        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3 text-center">
-            Or select specific care:
+        <div className="my-6">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 text-center">
+            {language === 'Hindi' ? "उचित विकल्प चुनें:" : "Select the best option:"}
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {suggestedOptions.map((opt, i) => (
               <button
                 key={i}
                 onClick={() => onAnswer(opt)}
                 disabled={isProcessing}
-                className="py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50/50 text-slate-800 dark:text-slate-200 text-sm font-semibold text-left transition-colors cursor-pointer"
+                className="p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700/80 hover:border-emerald-500 dark:hover:border-emerald-500 bg-slate-50/70 hover:bg-emerald-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-800 dark:text-white text-sm sm:text-base font-bold text-left transition-all cursor-pointer shadow-xs hover:shadow-sm active:scale-[0.98] flex items-center justify-between"
               >
-                {opt}
+                <span>{opt}</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm opacity-0 group-hover:opacity-100">→</span>
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Quick Yes/No Buttons (Shown for binary questions or as quick affirmation) */}
+      {(suggestedOptions.length === 0 || /kya\s*(unhe|aapko|koi|saans|chest|dard)|is\s*there|do\s*you|are\s*they/i.test(question)) && (
+        <div className="grid grid-cols-2 gap-4 my-4">
+          <button
+            onClick={() => onAnswer("Haan, yeh takleef hai")}
+            disabled={isProcessing}
+            className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-lg sm:text-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer min-h-[58px]"
+          >
+            <CheckCircle className="w-6 h-6" />
+            <span>{t.yes}</span>
+          </button>
+
+          <button
+            onClick={() => onAnswer("Nahi, aisi koi dikkat nahi (Safe)")}
+            disabled={isProcessing}
+            className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-95 text-slate-800 dark:text-white font-bold text-lg sm:text-xl shadow-xs transition-all cursor-pointer min-h-[58px]"
+          >
+            <XCircle className="w-6 h-6 text-slate-500" />
+            <span>{t.no}</span>
+          </button>
         </div>
       )}
 

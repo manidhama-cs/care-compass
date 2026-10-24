@@ -20,6 +20,7 @@ import { ResultView } from './components/ResultView.tsx';
 import { BookingModal } from './components/BookingModal.tsx';
 import { AppLanguage, I18N } from './i18n/translations.ts';
 import { TriageResponse, ConversationTurn } from './types/triage.ts';
+import { executeSessionTriage, resetSessionTriage } from './services/triageClient.ts';
 import { platformStore } from './services/platformStore.ts';
 import {
   Send,
@@ -69,7 +70,7 @@ export default function App() {
     });
   }, []);
 
-  // Core Session-Aware Triage Dispatcher
+  // Core Session-Aware Triage Dispatcher (Resilient to GitHub Pages & Static Hosts)
   const handleExecuteTriage = async (input: string) => {
     if (!input || !input.trim() || isProcessing) return;
     setIsProcessing(true);
@@ -82,20 +83,15 @@ export default function App() {
     setTextInput('');
 
     try {
-      const res = await fetch('/api/triage/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: sessionId || undefined,
-          user_input: input.trim(),
-          language: language === 'Hinglish' ? 'Hinglish' : language,
-          location: { lat: 28.54, lng: 77.27 }, // Delhi NCR
-          conversation_history: newHistory
-        })
+      const data = await executeSessionTriage({
+        sessionId: sessionId || undefined,
+        user_input: input.trim(),
+        language: language === 'Hinglish' ? 'Hinglish' : language,
+        location: { lat: 28.54, lng: 77.27 }, // Delhi NCR
+        conversation_history: newHistory
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      if (data) {
         if (data.sessionId) {
           setSessionId(data.sessionId);
         }
@@ -109,12 +105,18 @@ export default function App() {
           matched_caregivers: data.matched_caregivers || [],
           detected_language: data.sessionState?.language || language,
           confidence: data.care_type ? 0.95 : 0.5,
-          suggested_options: data.suggested_options || []
+          suggested_options: data.suggested_options || [],
+          sessionState: data.sessionState
         };
         setLatestResponse(adaptedResponse);
 
         // Update language if detected
-        if (adaptedResponse.detected_language && (adaptedResponse.detected_language === 'Hindi' || adaptedResponse.detected_language === 'English' || adaptedResponse.detected_language === 'Hinglish')) {
+        if (
+          adaptedResponse.detected_language &&
+          (adaptedResponse.detected_language === 'Hindi' ||
+            adaptedResponse.detected_language === 'English' ||
+            adaptedResponse.detected_language === 'Hinglish')
+        ) {
           setLanguage(adaptedResponse.detected_language as AppLanguage);
         }
 
@@ -142,24 +144,17 @@ export default function App() {
     if (!sessionId || isProcessing) return;
     setIsProcessing(true);
     try {
-      const res = await fetch('/api/triage/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          user_input: 'Different caregiver requested',
-          rejected_caregiver_id: caregiverId,
-          language
-        })
+      const data = await executeSessionTriage({
+        sessionId,
+        user_input: 'Different caregiver requested',
+        rejected_caregiver_id: caregiverId,
+        language
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (latestResponse) {
-          setLatestResponse({
-            ...latestResponse,
-            matched_caregivers: data.matched_caregivers || []
-          });
-        }
+      if (data && latestResponse) {
+        setLatestResponse({
+          ...latestResponse,
+          matched_caregivers: data.matched_caregivers || []
+        });
       }
     } catch (err) {
       console.error('Failed to rotate caregiver:', err);
@@ -170,15 +165,7 @@ export default function App() {
 
   const handleReset = async () => {
     if (sessionId) {
-      try {
-        await fetch('/api/triage/session/reset', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId })
-        });
-      } catch (e) {
-        // Silent failover
-      }
+      await resetSessionTriage(sessionId);
     }
     setSessionId('');
     setCurrentStage('initial');
@@ -383,7 +370,7 @@ export default function App() {
                   language={language}
                   question={latestResponse.follow_up_question}
                   stepNumber={followUpCount}
-                  totalSteps={3}
+                  totalSteps={latestResponse.sessionState?.maxQuestions || 4}
                   suggestedOptions={latestResponse.suggested_options}
                   onAnswer={handleExecuteTriage}
                   onBack={handleReset}

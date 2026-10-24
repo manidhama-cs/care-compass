@@ -323,6 +323,53 @@ async function runTestSuite() {
   }
 
   // --------------------------------------------------------------------------
+  // Scenario M: Deep Multi-Turn Clinical Inquiry (Adaptive Q&A Sequence)
+  // --------------------------------------------------------------------------
+  {
+    // Turn 1: Symptom stated without context
+    const turn1 = runSessionScreening({
+      user_input: 'Mera pet kharab hai aur ulti jaisa lag raha hai',
+      language: 'Hinglish'
+    });
+    // Turn 2: User clears red flags and states duration
+    const turn2 = runSessionScreening({
+      sessionId: turn1.sessionId,
+      user_input: 'Nahi koi saans ya chest pain nahi hai, kal subah se hai',
+      language: 'Hinglish'
+    });
+    // Turn 3: User answers progression & severity
+    const turn3 = runSessionScreening({
+      sessionId: turn1.sessionId,
+      user_input: 'Bohat tez ulti aur dast ho rahe hain, badh raha hai',
+      language: 'Hinglish'
+    });
+    // Turn 4: User chooses care modality
+    const turn4 = runSessionScreening({
+      sessionId: turn1.sessionId,
+      user_input: 'Online doctor se consult karna chahte hain',
+      language: 'Hinglish'
+    });
+
+    assert(
+      'Scenario M (Deep Multi-Turn)',
+      turn1.screeningStatus === 'asking_follow_up' &&
+      turn2.screeningStatus === 'asking_follow_up' &&
+      turn3.screeningStatus === 'asking_follow_up' &&
+      turn4.screeningStatus === 'ready_for_recommendation' &&
+      turn4.care_type === 'teleconsultation' &&
+      turn4.matched_caregivers.length > 0,
+      'Progressive 4-turn clinical screening systematically uncovers safety, duration, severity, and care preference',
+      {
+        turn1Q: turn1.follow_up_question,
+        turn2Q: turn2.follow_up_question,
+        turn3Q: turn3.follow_up_question,
+        finalCareType: turn4.care_type,
+        caregiverCount: turn4.matched_caregivers.length
+      }
+    );
+  }
+
+  // --------------------------------------------------------------------------
   // Edge Case: Session Isolation
   // Two concurrent sessions with different needs must not cross-contaminate state
   // --------------------------------------------------------------------------

@@ -143,6 +143,7 @@ export interface TriageResponse {
   detected_language?: DetectedLanguage;
   confidence?: number;
   suggested_options?: string[];
+  sessionState?: Partial<ScreeningSessionState>;
 }
 
 export interface Caregiver {
