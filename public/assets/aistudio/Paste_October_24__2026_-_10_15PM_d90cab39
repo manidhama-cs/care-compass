@@ -1,0 +1,985 @@
+
+
+Skip to content
+Using Gmail with screen readers
+(no subject)
+Inbox
+
+Kunal Singh
+21:14 (1 hour ago)
+# ROLE You are a senior full-stack + ML engineer building "CareCompass", an AI care-navigation and caregiver-matching system for the HACK IIITD (CAI, IIIT-Delhi
+
+Kunal Singh
+22:12 (1 minute ago)
+to me
+
+CARECOMPASS — COMPLETE AI HEALTHCARE PLATFORM UPGRADE MASTER PROMPT
+1. ROLE & OBJECTIVE
+Act as a senior full-stack developer, AI engineer, healthcare product designer, database architect, and UI/UX specialist.
+
+Upgrade my existing CareCompass project into a modern, fully connected healthcare platform. Do not build only a static UI or a collection of disconnected pages. Every major feature must have working navigation, realistic sample data, functional interactions, validation, and appropriate backend integration.
+
+First inspect my existing repository, understand its framework, components, routes, database, and current features, and then extend the existing codebase. Preserve working features and avoid unnecessarily rewriting the project.
+
+The application must be responsive, mobile-first, professional, accessible, and suitable for a college hackathon demonstration.
+
+2. PRODUCT VISION
+CareCompass connects patients with appropriate healthcare support through one platform.
+
+The platform should include:
+
+AI-assisted symptom collection and healthcare navigation.
+
+Doctor discovery and online consultation.
+
+Doctor-to-patient messaging and video consultation interface.
+
+Doctor-issued digital prescriptions.
+
+PDF medical reports and consultation summaries.
+
+Patient medical history and health records.
+
+Nearby medical stores and a medicines shopping zone.
+
+Caregiver discovery, reviews, experiences, and ranking.
+
+Doctor ratings, reviews, availability, and ranking.
+
+Patient dashboard, appointments, notifications, and profile management.
+
+The application is a healthcare navigation and management platform, not an autonomous diagnostic system. AI must not independently diagnose diseases, prescribe medicines, or replace emergency medical care.
+
+3. USER ROLES
+Create role-based dashboards for:
+
+A. Patient / User
+Register and log in.
+
+Complete a basic profile.
+
+Enter symptoms and receive cautious care-navigation guidance.
+
+Find doctors and caregivers.
+
+Book appointments.
+
+Join a consultation.
+
+Receive prescriptions from authorized doctors.
+
+View and download PDF reports.
+
+Access past medical history.
+
+Search nearby pharmacies and medicines.
+
+View ratings, reviews, prices, and availability.
+
+Manage appointments, orders, notifications, and privacy settings.
+
+B. Doctor
+Doctor dashboard with daily appointments.
+
+Professional profile, specialization, qualifications, experience, languages, and consultation fees.
+
+Availability calendar and appointment management.
+
+Patient history access only when authorized.
+
+Patient consultation interface.
+
+Secure chat and video consultation interface.
+
+Create, review, sign/authorize, and issue prescriptions.
+
+Generate consultation summaries and reports.
+
+View patient follow-up requirements.
+
+Manage professional profile and respond to reviews where appropriate.
+
+Clearly distinguish verified doctors from demo profiles. In production, professional credentials must be verified before a doctor can issue valid prescriptions.
+
+C. Caregiver
+Caregiver dashboard.
+
+Profile, skills, experience, service area, languages, hourly or visit-based fees, and availability.
+
+Service categories such as elderly assistance, post-discharge support, mobility assistance, and daily living assistance.
+
+Accept or reject requests.
+
+Manage bookings and availability.
+
+View reviews and feedback.
+
+Track completed bookings and overall rating.
+
+Do not imply that every caregiver is a qualified nurse or medical professional. Clearly display their verified qualifications and permitted services.
+
+D. Admin
+Manage users, doctors, caregivers, pharmacies, medicines, appointments, and reviews.
+
+Review doctor and caregiver verification status.
+
+Flag suspicious reviews.
+
+Manage sample/demo data.
+
+View basic application activity and error logs.
+
+Do not expose private patient records unnecessarily.
+
+4. MODERN UI/UX DESIGN
+Create a polished, trustworthy healthcare interface.
+
+Visual direction
+Primary colors: navy blue, teal, white, and subtle light-grey backgrounds.
+
+Use clean cards, rounded corners, restrained shadows, clear typography, and consistent spacing.
+
+Use Lucide icons or the project's existing icon library.
+
+Avoid excessive gradients, cluttered dashboards, oversized text, and unnecessary animations.
+
+Use realistic healthcare illustrations or appropriate licensed images.
+
+Use loading skeletons, success messages, validation errors, empty states, and confirmation dialogs.
+
+Patient navigation
+Create a consistent sidebar on desktop and bottom navigation on mobile.
+
+Recommended navigation:
+
+Home
+
+Find Doctors
+
+Caregivers
+
+Consultation
+
+Medicines
+
+Medical History
+
+Reports
+
+Appointments
+
+Profile
+
+The home dashboard should include:
+
+Welcome section.
+
+Search doctors, caregivers, and medicines.
+
+Upcoming appointment.
+
+Quick actions.
+
+Recent prescriptions and reports.
+
+Recent orders.
+
+Health-record summary.
+
+Recommended providers, with clear reasons for recommendations.
+
+UX requirements
+All buttons must perform their advertised actions.
+
+All forms must validate inputs.
+
+All navigation links must work.
+
+Use readable font sizes, keyboard accessibility, visible focus states, and accessible labels.
+
+Never communicate medical urgency through color alone.
+
+Ask permission before accessing location or sensitive information.
+
+Display clear explanations when a feature is unavailable or using demonstration data.
+
+5. AI HEALTHCARE NAVIGATION
+Implement a guided workflow:
+
+User describes a health concern
+→ Extract relevant symptoms and context
+→ Check emergency warning signs using deterministic safety rules
+→ Ask relevant follow-up questions
+→ Suggest an appropriate next step
+→ Offer suitable doctors or other support
+→ Display explanations and limitations.
+
+Important rules:
+
+Emergency warning signs must take priority over normal recommendations.
+
+Never delay emergency guidance to complete a questionnaire or search for a provider.
+
+AI-generated explanations must not override safety rules.
+
+Do not make definitive diagnoses or automatically prescribe medication.
+
+When uncertain, advise appropriate professional assessment.
+
+Record only necessary information and obtain consent before storing it.
+
+6. DOCTOR DISCOVERY AND RANKING
+Create a doctor directory with at least 15–20 fictional sample doctors across multiple specializations.
+
+Include:
+
+Doctor name.
+
+Profile image or avatar.
+
+Specialization.
+
+Qualifications and verification status.
+
+Years of experience.
+
+Languages.
+
+Consultation fee.
+
+Clinic or service location.
+
+Online consultation availability.
+
+Next available appointment.
+
+Average rating and number of reviews.
+
+Consultation mode: online or in-person.
+
+Add filters for specialization, location, language, fee, availability, consultation mode, and rating.
+
+Doctor ranking logic
+Rank eligible doctors using configurable factors:
+
+Relevance to the patient's requested specialty.
+
+Appointment availability.
+
+Location or online access.
+
+Language compatibility.
+
+Verified credentials.
+
+Transparent consultation fee.
+
+Review quality and review count.
+
+Use a documented scoring formula. Apply minimum eligibility requirements before ranking.
+
+Do not rank doctors only by popularity, payment, or raw star ratings. Avoid unfairly penalizing new doctors with fewer reviews.
+
+Display a short explanation such as:
+"Recommended because this doctor matches your specialty, language, and availability preferences."
+
+Show a disclaimer that rankings are recommendations, not guarantees of clinical quality.
+
+7. ONLINE DOCTOR CONSULTATION
+Create a functional consultation workflow.
+
+Appointment flow
+Patient selects a doctor.
+
+Patient views profile, fee, available slots, and consultation mode.
+
+Patient books a slot.
+
+Appointment appears on both patient and doctor dashboards.
+
+Patient receives confirmation.
+
+At the scheduled time, the consultation room becomes available.
+
+Doctor documents the consultation and can issue a prescription or report.
+
+Consultation interface
+Include:
+
+Doctor and patient details.
+
+Appointment date and status.
+
+Secure messaging interface.
+
+Video-call interface or a clearly labelled video consultation demo.
+
+Call controls and connection status.
+
+Consultation notes.
+
+Relevant patient history, only with authorization.
+
+Upload area for supporting documents.
+
+Prescription creation button for authorized doctors.
+
+End-consultation and follow-up actions.
+
+If a real video provider or messaging service is not configured, implement a realistic demonstration interface and clearly label it as a demo. Do not pretend that a real call or secure message has occurred.
+
+8. DIGITAL PRESCRIPTION MODULE
+Allow an authorized doctor to create and issue a prescription after a consultation.
+
+Prescription fields
+Unique prescription ID.
+
+Patient name and identifier.
+
+Doctor's name, qualifications, and verified registration details where applicable.
+
+Consultation date.
+
+Clinical notes and assessment entered by the doctor.
+
+Medication name.
+
+Strength and dosage.
+
+Route and frequency.
+
+Duration and quantity.
+
+Relevant instructions and warnings.
+
+Allergy information, when available.
+
+Follow-up recommendation.
+
+Doctor's authorization/signature mechanism.
+
+Issue date and status.
+
+Workflow
+Doctor opens consultation
+→ Reviews relevant history
+→ Enters prescription details
+→ Validates required fields
+→ Reviews the prescription
+→ Authorizes and issues it
+→ Patient receives a notification
+→ Prescription appears in Medical History
+→ Patient can view or download the PDF.
+
+Requirements:
+
+Only authorized doctors can issue prescriptions.
+
+AI may help format clinician-entered information but must not autonomously select drugs or dosages.
+
+The doctor must review and authorize the final prescription.
+
+Preserve an audit trail of creation, changes, authorization, and cancellation.
+
+Prevent unauthorized editing after issuance; use a documented amendment or cancellation workflow.
+
+Clearly label sample prescriptions as fictional demonstrations.
+
+Do not represent demo prescriptions as legally valid medical documents.
+
+9. PDF REPORT GENERATION
+Build a dedicated Reports section.
+
+Generate downloadable PDFs for:
+
+Consultation summary.
+
+Doctor-issued prescription.
+
+Patient health-record summary.
+
+Uploaded or entered laboratory-report summary.
+
+Appointment history.
+
+Caregiver service summary, where applicable.
+
+PDF design
+Professional, print-friendly A4 layout.
+
+CareCompass branding.
+
+Document title and unique ID.
+
+Patient and provider details where appropriate.
+
+Date and document status.
+
+Clearly organized tables and sections.
+
+Page numbers where applicable.
+
+Footer with privacy information and relevant limitations.
+
+PDF workflow
+User selects a record
+→ System validates permissions
+→ Report is generated from saved data
+→ User previews the report
+→ User downloads the PDF
+→ Report appears in the user's report history.
+
+Use a suitable PDF-generation library for the existing stack. Generate PDFs from real application data, not hardcoded screenshots.
+
+Every report must distinguish clinician-authorized information from AI-generated summaries. AI-generated summaries must be labelled and must not replace the original medical report.
+
+10. PATIENT MEDICAL HISTORY
+Create a dedicated Medical History dashboard.
+
+Include:
+
+Past consultations.
+
+Current and previous prescriptions.
+
+Allergies and reported reactions.
+
+Existing medical conditions reported by the patient.
+
+Past procedures or hospital visits, if provided.
+
+Uploaded laboratory reports.
+
+Important clinician-entered notes.
+
+Follow-up recommendations.
+
+Appointment and treatment timeline.
+
+Features:
+
+Search and filter by date, record type, and doctor.
+
+Open record details.
+
+Download relevant documents.
+
+Upload reports with file validation.
+
+Edit patient-entered information.
+
+Distinguish patient-reported data from clinician-confirmed data.
+
+Allow users to request corrections or deletion where applicable.
+
+Use consent-based access controls. A doctor should only access records necessary for an authorized care relationship. Do not expose a patient's entire history to every provider.
+
+For demonstration, create fictional historical records for sample patients. Clearly label them as sample data.
+
+11. MEDICINES SHOPPING ZONE
+Create a pharmacy discovery and medicines shopping section similar in usability to modern local-commerce applications.
+
+The purpose is to help users discover nearby pharmacies, check medicine availability, and review prices.
+
+Pharmacy discovery
+Ask permission for the user's location.
+
+Provide manual location or PIN-code entry as an alternative.
+
+Show nearby pharmacies using real location integrations when configured.
+
+Display fictional pharmacies with clearly labelled demo locations when no real integration is available.
+
+Show distance only when based on valid location data.
+
+Display pharmacy name, address, operating hours, phone number, delivery availability, and verification status.
+
+Medicine catalogue
+Create at least 40–60 fictional sample medicine catalogue entries across relevant categories.
+
+Include:
+
+Medicine name.
+
+Generic name.
+
+Brand, if applicable.
+
+Strength and dosage form.
+
+Pack size.
+
+Price.
+
+Availability.
+
+Pharmacy name.
+
+Prescription requirement.
+
+Product image or placeholder.
+
+Storage or handling information where appropriate.
+
+Use synthetic catalogue records and clearly label them as demo inventory. Do not invent real-time stock or prices.
+
+Search and shopping
+Search by medicine or generic name.
+
+Filter by category, availability, price, and pharmacy.
+
+Compare available listings.
+
+Add eligible products to a cart.
+
+Update quantity and remove products.
+
+Display subtotal, delivery fee, and estimated total.
+
+Select pickup or delivery where supported.
+
+Provide an order summary and order status page.
+
+Medicine safety and compliance
+Prescription-only medicines must require an appropriate valid prescription and verification workflow before fulfilment.
+
+Never allow users to bypass prescription checks.
+
+Do not recommend or substitute medicines through autonomous AI decisions.
+
+OTC items must be clearly distinguished from prescription-only medicines.
+
+Do not claim an order has been placed with a real pharmacy unless an actual integration confirms it.
+
+For a hackathon demo, simulated checkout and orders are acceptable if clearly labelled.
+
+Pharmacy data structure
+Each pharmacy should have:
+
+Unique ID.
+
+Name.
+
+Address or demo location.
+
+Coordinates only when valid.
+
+Contact details.
+
+Opening hours.
+
+Verification status.
+
+Service and delivery areas.
+
+Each inventory listing should link a medicine to a pharmacy and include price, stock status, last-updated timestamp, and prescription requirement.
+
+12. CAREGIVER DISCOVERY, REVIEWS AND RANKING
+Create a directory with at least 25–30 fictional caregiver profiles.
+
+Represent different service categories, experience levels, languages, service areas, and availability.
+
+Caregiver profile
+Name and profile image/avatar.
+
+Service categories.
+
+Relevant training and qualifications.
+
+Verification status.
+
+Years of experience.
+
+Languages spoken.
+
+Service areas.
+
+Availability calendar.
+
+Hourly or visit-based fee.
+
+Services provided and services not provided.
+
+Average rating.
+
+Number of completed sample bookings.
+
+Written reviews and past experiences.
+
+Booking button.
+
+Reviews and past experiences
+Add several fictional review examples per caregiver. Include:
+
+Rating.
+
+Review text.
+
+Service category.
+
+Approximate review date.
+
+Booking status or verification indicator.
+
+All seeded reviews must be clearly identified as fictional demo data. Do not present synthetic reviews as genuine testimonials.
+
+In the functional review system:
+
+Allow reviews only after completed bookings.
+
+Prevent duplicate reviews for the same booking.
+
+Validate ratings and review text.
+
+Provide a report-review option.
+
+Include moderation controls.
+
+Calculate average ratings from review records instead of hardcoding them.
+
+Show the total number of reviews and completed bookings separately.
+
+Caregiver ranking algorithm
+First filter out caregivers who do not meet required eligibility criteria.
+
+Then rank the remaining candidates using configurable factors such as:
+
+Service and skill match.
+
+Availability.
+
+Service-area compatibility.
+
+Language compatibility.
+
+Verified qualifications relevant to the requested service.
+
+Review rating with adjustment for small sample sizes.
+
+Transparent cost and user preferences.
+
+Display the reasons behind each recommendation.
+
+Do not let paid placement override eligibility or safety. Do not treat a high rating as proof of clinical qualification.
+
+If no suitable caregiver exists, show an honest no-match state and suggest alternative next steps.
+
+13. DATABASE DESIGN
+Use the existing database if suitable. Otherwise, create an organized relational schema.
+
+Suggested entities:
+
+Users
+
+PatientProfiles
+
+DoctorProfiles
+
+CaregiverProfiles
+
+Pharmacies
+
+Medicines
+
+PharmacyInventory
+
+Appointments
+
+Consultations
+
+Messages
+
+Prescriptions
+
+PrescriptionItems
+
+MedicalRecords
+
+Reports
+
+CaregiverBookings
+
+Reviews
+
+AvailabilitySlots
+
+Notifications
+
+Orders
+
+OrderItems
+
+ConsentRecords
+
+AuditLogs
+
+Use unique IDs, timestamps, relationships, input validation, and appropriate indexes.
+
+Important:
+
+Never store plaintext passwords.
+
+Protect sensitive medical information.
+
+Use role-based authorization on the backend, not only in the frontend.
+
+Validate uploaded files, file types, and sizes.
+
+Keep secrets and API keys in environment variables.
+
+Do not expose private records through predictable public URLs.
+
+Provide clear demo-data separation.
+
+Use transactions where necessary for appointments, prescriptions, and order workflows.
+
+14. SAMPLE DATA GENERATION
+Create a reproducible seed script that populates the development database with fictional examples.
+
+Minimum sample data:
+
+30 patients with fictional profiles.
+
+20 doctors across multiple specialties.
+
+30 caregivers with varied skills and availability.
+
+8–12 fictional pharmacies.
+
+40–60 medicine catalogue entries.
+
+Multiple appointment and consultation records.
+
+30 or more fictional prescription records.
+
+Multiple fictional medical-history records.
+
+At least 3–5 synthetic reviews per caregiver where appropriate.
+
+Doctor reviews with varied ratings and review counts.
+
+Several sample orders in different statuses.
+
+Synthetic urgent, routine, unclear, and no-match navigation test cases.
+
+Use varied but plausible values so that searching, filtering, sorting, ranking, and dashboard statistics can be demonstrated.
+
+All sample people, locations, medical records, reviews, prescriptions, prices, and inventory must be fictional unless explicitly sourced from a legitimate integration.
+
+Add a visible DEMO DATA label where necessary. Never mix fake data with real patient records.
+
+15. DASHBOARD AND SEARCH FUNCTIONALITY
+Build working dashboards for patients, doctors, caregivers, and administrators.
+
+Include:
+
+Upcoming appointments.
+
+Completed consultations.
+
+Recent reports.
+
+Prescription count.
+
+Caregiver booking status.
+
+Pharmacy order status.
+
+Unread notifications.
+
+Search, filters, sorting, and pagination where needed.
+
+Dashboard statistics must be calculated from the actual seed/database records. Do not hardcode numbers that disagree with the displayed data.
+
+Provide clear empty states for new users.
+
+16. NOTIFICATIONS
+Implement in-app notifications for:
+
+Appointment confirmation and changes.
+
+Upcoming consultations.
+
+Prescription issued.
+
+Report ready for download.
+
+Caregiver booking updates.
+
+Pharmacy order updates.
+
+Follow-up reminders.
+
+Use simulated notifications for the prototype if email/SMS integration is not configured. Clearly label simulated functionality and do not claim real messages were sent.
+
+17. SECURITY, PRIVACY AND HEALTHCARE SAFETY
+Implement:
+
+Authentication and role-based authorization.
+
+Consent-aware medical-history access.
+
+Secure document access.
+
+Minimal collection of personal data.
+
+Audit logging for sensitive actions.
+
+Secure environment-variable handling.
+
+Input validation and safe error messages.
+
+Clear privacy and consent interfaces.
+
+Separation of demo records from real records.
+
+Do not expose medical details in public reviews or provider listings. Avoid storing unnecessary health information in logs.
+
+For real-world deployment, assess applicable Indian healthcare, data-protection, telemedicine, pharmacy, and prescription requirements with qualified legal and clinical experts. Do not claim legal or regulatory compliance merely because a feature has been implemented.
+
+18. TESTING AND ACCEPTANCE CRITERIA
+Test the application end to end.
+
+Patient tests
+Register, log in, and update profile.
+
+Find and filter doctors.
+
+Book and cancel an appointment.
+
+Join the consultation demo.
+
+View an issued prescription.
+
+Generate and download a PDF.
+
+Open past medical history.
+
+Search nearby demo pharmacies.
+
+Add an eligible medicine to the cart.
+
+View a demo order.
+
+Search, filter, and book a caregiver.
+
+Read reviews and view ranking explanations.
+
+Doctor tests
+View authorized appointments.
+
+Access permitted patient records.
+
+Add consultation notes.
+
+Issue an authorized demo prescription.
+
+Generate a consultation report.
+
+Update availability.
+
+Caregiver tests
+Update profile and availability.
+
+View and respond to bookings.
+
+See review and ranking information.
+
+Safety tests
+Emergency warning signs bypass routine matching.
+
+AI cannot override safety rules.
+
+Unauthorized users cannot issue prescriptions.
+
+Unauthorized users cannot access patient history.
+
+Prescription-only items cannot bypass verification.
+
+Synthetic reviews are visibly labelled.
+
+Empty search results and unavailable inventory are handled properly.
+
+PDF generation works with missing optional fields.
+
+Invalid inputs and uploaded files are rejected safely.
+
+Write automated tests for critical backend logic and document manual UI testing.
+
+19. IMPLEMENTATION PLAN
+Build incrementally in this order:
+
+Phase 1: Inspect repository, existing stack, and current implementation.
+
+Phase 2: Design the database, roles, authorization, and synthetic seed data.
+
+Phase 3: Build the shared design system and responsive dashboards.
+
+Phase 4: Implement doctor and caregiver directories, filters, rankings, and reviews.
+
+Phase 5: Implement appointments and consultation workflows.
+
+Phase 6: Implement doctor-authorized prescriptions, medical history, and PDF reports.
+
+Phase 7: Implement pharmacy discovery, catalogue, cart, and simulated checkout.
+
+Phase 8: Connect AI-assisted navigation and deterministic safety rules.
+
+Phase 9: Add notifications, validation, accessibility, and error states.
+
+Phase 10: Run automated tests, fix errors, verify all navigation and workflows, and update documentation.
+
+Do not attempt to implement every feature as a large untested change. Finish and test each phase before moving forward.
+
+20. FINAL DELIVERABLES
+Provide:
+
+Fully updated project source code.
+
+Working responsive UI.
+
+Backend API and database integration.
+
+Database migrations or schema.
+
+Reproducible synthetic seed-data script.
+
+Functional demo workflows.
+
+PDF report generation.
+
+Automated tests.
+
+.env.example without real secrets.
+
+Updated README with setup and run instructions.
+
+API documentation.
+
+Demo credentials for fictional accounts, if appropriate.
+
+A list of completed features and remaining limitations.
+
+At the end, provide:
+
+What was implemented.
+
+How to run the application.
+
+Demo login details.
+
+Important API routes.
+
+Test results.
+
+Which features are fully functional, simulated, or require external integration.
+
+Known limitations and next steps.
+
+FINAL INSTRUCTION
+Build CareCompass as a cohesive healthcare platform, not just a UI mockup. Reuse the existing codebase wherever practical. Prioritize safety, usability, realistic sample data, working interactions, clean architecture, and a polished hackathon-ready demonstration.
+
+Do not invent real doctors, real patient testimonials, verified credentials, real pharmacy availability, or clinical accuracy claims. Use fictional demo records unless genuine data is provided through an authorized integration.
+
+Begin by inspecting the repository and presenting a concise implementation plan. Then implement the features in phases, run the tests, fix errors, and verify the complete user journey before declaring the work finished.
+

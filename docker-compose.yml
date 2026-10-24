@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  carecompass:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carecompass-app
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - TINYFISH_API_KEY=sk-tinyfish-EamTMDICU7h6PdFiRZP8fpFT6oYeXNya
+    restart: unless-stopped
