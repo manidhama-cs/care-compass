@@ -12,6 +12,7 @@ interface ResultViewProps {
   reasoning: string;
   matchedCaregivers: MatchedCaregiverResult[];
   onBookCaregiver: (caregiverId: string) => void;
+  onRejectCaregiver?: (caregiverId: string) => void;
   onReset: () => void;
 }
 
@@ -22,6 +23,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
   reasoning,
   matchedCaregivers,
   onBookCaregiver,
+  onRejectCaregiver,
   onReset
 }) => {
   const t = I18N[language];
@@ -191,8 +193,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
               </div>
             </div>
 
-            {/* Giant One-Tap Book Button */}
-            <div className="shrink-0 w-full md:w-auto">
+            {/* Giant One-Tap Book Button & Alternative Provider Button */}
+            <div className="shrink-0 w-full md:w-auto flex flex-col gap-2">
               <button
                 onClick={() => onBookCaregiver(activeCandidate.matchInfo.caregiver_id)}
                 className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 sm:py-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-lg sm:text-xl shadow-lg shadow-emerald-600/25 transition-all cursor-pointer min-h-[56px]"
@@ -200,13 +202,31 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 <CheckCircle2 className="w-6 h-6" />
                 <span>{t.bookNow}</span>
               </button>
+
+              {onRejectCaregiver && (
+                <button
+                  type="button"
+                  onClick={() => onRejectCaregiver(activeCandidate.matchInfo.caregiver_id)}
+                  className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white py-1 hover:underline cursor-pointer"
+                >
+                  {language === 'Hindi' ? "कोई अन्य प्रदाता दिखाएं ↻" : "Show different provider ↻"}
+                </button>
+              )}
             </div>
           </div>
         </div>
       ) : (
-        <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
-          <p className="text-slate-600 dark:text-slate-300 font-medium">
-            Finding available caregivers in your area...
+        <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold">
+            !
+          </div>
+          <h3 className="font-bold text-slate-900 dark:text-white text-base">
+            {language === 'Hindi' ? "इस क्षेत्र में कोई उपलब्ध प्रदाता नहीं मिला" : "No Eligible In-Person Providers Found"}
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 text-xs max-w-md mx-auto">
+            {language === 'Hindi'
+              ? "आपके द्वारा चुने गए पते/समय पर कोई योग्य कर्मी उपलब्ध नहीं है। आप ऑनलाइन डॉक्टर परामर्श ले सकते हैं या हमारे सहायता केंद्र (1800-SANOCARE) पर संपर्क कर सकते हैं।"
+              : "No qualified providers with the requested specialized skill set are currently active in this service radius. We recommend booking a virtual teleconsultation or calling our care desk."}
           </p>
         </div>
       )}

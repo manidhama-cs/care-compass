@@ -34,12 +34,16 @@ const NEGATION_PATTERNS = [
   /\bno\s+(chest\s*pain|breathing\s*trouble|shortness\s*of\s*breath|bleeding|seizure|headache)\b/i,
   /\bwithout\s+(any\s+)?(chest\s*pain|breathlessness|bleeding)\b/i,
   /\b(not\s+having|denies|ruled\s*out)\s+(chest\s*pain|breathlessness|seizures?)\b/i,
-  /(seene|chaati|chhati)\s+(mein|me)?\s*(koi\s*)?dard\s+nahi\b/i,
+  /\bchest\s*pain\s*(nahi|nhi|bilkul\s*nahi)\b/i,
+  /(seene|chaati|chhati)\s+(mein|me)?\s*(koi\s*)?(dard|pain)\s+(nahi|nhi)\b/i,
   /dard\s+(nahi|nhi)\s+hai\b/i,
   /saans\s+(ki|mein|me)?\s*(koi\s*)?(dikkat|takleef|problem)\s+(nahi|nhi)\b/i,
+  /\b(breathlessness|saans\s*ki\s*takleef)\s*(nahi|nhi)\b/i,
   /khoon\s+(nahi|nhi)\s+(beh|nikal)\s+raha\b/i,
   /behosh\s+(nahi|nhi)\b/i,
-  /chhati\s*me\s*dard\s*nahi/i
+  /chhati\s*me\s*dard\s*nahi/i,
+  /सीने\s*में\s*(कोई\s*)?दर्द\s*नहीं/i,
+  /सांस\s*में\s*(कोई\s*)?दिक्कत\s*नहीं/i
 ];
 
 interface RedFlagRule {

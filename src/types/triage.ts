@@ -30,6 +30,13 @@ export type RedFlag =
 
 export type DetectedLanguage = 'English' | 'Hindi' | 'Hinglish';
 
+export type ScreeningStatus =
+  | 'collecting_information'
+  | 'asking_follow_up'
+  | 'ready_for_recommendation'
+  | 'emergency'
+  | 'needs_human_assistance';
+
 export interface Location {
   lat: number;
   lng: number;
@@ -38,6 +45,78 @@ export interface Location {
 export interface ConversationTurn {
   role: 'user' | 'assistant' | 'system';
   content: string;
+}
+
+export interface ScreeningSessionState {
+  sessionId: string;
+  conversationHistory: ConversationTurn[];
+  targetPerson: 'self' | 'father' | 'mother' | 'grandmother' | 'grandfather' | 'child' | 'spouse' | 'other' | 'unknown';
+  mainConcern: string;
+  symptoms: string[];
+  duration: string | null;
+  severity: 'mild' | 'moderate' | 'severe' | 'unknown';
+  progression: 'better' | 'worse' | 'same' | 'unknown';
+  relevantContext: string[];
+  requestedService: 'injection' | 'dressing' | 'lab_test' | 'doctor_consult' | 'vitals_check' | 'none';
+  language: DetectedLanguage;
+  location: Location | null;
+  isLocationExplicit: boolean;
+  knownAnswers: Record<string, string | number | boolean>;
+  missingInformation: string[];
+  screeningStatus: ScreeningStatus;
+  questionCount: number;
+  maxQuestions: number;
+  nextQuestion: string | null;
+  suggestedOptions: string[];
+  careType: CareType;
+  urgency: Urgency;
+  reasoning: string;
+  matchedCaregivers: MatchedCaregiverResult[];
+  previouslyShownCaregivers: string[];
+  rejectedCaregivers: string[];
+  selectedCaregiverId?: string;
+  isSingleTurnEvaluation?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompletenessEvaluation {
+  isSufficient: boolean;
+  missingFields: string[];
+  recommendedNextQuestion: {
+    question: string;
+    suggestedOptions: string[];
+    field: string;
+  } | null;
+  reason: string;
+}
+
+export interface SessionTriageRequest {
+  sessionId?: string;
+  user_input: string;
+  language?: 'auto' | 'English' | 'Hindi' | 'Hinglish';
+  location?: Location;
+  rejected_caregiver_id?: string;
+  selected_caregiver_id?: string;
+  conversation_history?: ConversationTurn[];
+  isSingleTurnEvaluation?: boolean;
+}
+
+export interface SessionTriageResponse {
+  sessionId: string;
+  screeningStatus: ScreeningStatus;
+  assistantMessage: string;
+  follow_up_question: string | null;
+  missingInformation: string[];
+  care_type: CareType;
+  urgency: Urgency;
+  red_flags: string[];
+  reasoning: string;
+  matched_caregivers: MatchedCaregiverResult[];
+  suggested_options: string[];
+  canBook: boolean;
+  nextAction: 'answer_question' | 'confirm_booking' | 'call_112' | 'human_helpline' | 'provide_location';
+  sessionState?: Partial<ScreeningSessionState>;
 }
 
 export interface TriageRequest {

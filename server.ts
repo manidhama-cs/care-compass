@@ -18,6 +18,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { runFullTriage, evaluateDataset, generatePredictionsCsv } from './src/services/benchmarkService.ts';
+import { runSessionScreening } from './src/services/screeningStateMachine.ts';
+import { sessionStore } from './src/services/sessionStore.ts';
 import { fetchDoctorConsultSlot } from './src/services/tinyfishConsult.ts';
 import { CAREGIVERS } from './src/data/caregivers.ts';
 import { TRAINING_DATASET, parseTrainingDataset } from './src/data/trainingData.ts';
@@ -50,27 +52,98 @@ const handleHealth = (req: express.Request, res: express.Response) => {
     hackathon: 'HACK IIITD (CAI, IIIT-Delhi)',
     caregivers_loaded: CAREGIVERS.length,
     training_samples: TRAINING_DATASET.length,
+    active_sessions: sessionStore.getActiveSessionCount(),
     timestamp: new Date().toISOString()
   });
 };
 app.get('/health', handleHealth);
 app.get('/api/health', handleHealth);
 
-// POST /triage
+// GET /caregivers
+const handleGetCaregivers = (req: express.Request, res: express.Response) => {
+  const { role, active_only = 'true' } = req.query;
+  let list = CAREGIVERS;
+  if (active_only === 'true') {
+    list = list.filter(c => c.active);
+  }
+  if (role && typeof role === 'string') {
+    list = list.filter(c => c.role === role);
+  }
+  res.json({
+    total: list.length,
+    caregivers: list
+  });
+};
+app.get('/caregivers', handleGetCaregivers);
+app.get('/api/caregivers', handleGetCaregivers);
+
+// POST /triage/session (Session-Aware Multi-Turn Screening Endpoint)
+const handleSessionTriage = (req: express.Request, res: express.Response) => {
+  try {
+    const {
+      sessionId,
+      user_input,
+      language = 'auto',
+      location,
+      rejected_caregiver_id,
+      selected_caregiver_id,
+      conversation_history = []
+    } = req.body || {};
+
+    if (!user_input || typeof user_input !== 'string' || !user_input.trim()) {
+      res.status(400).json({ error: 'Missing required field: user_input' });
+      return;
+    }
+
+    const sessionResponse = runSessionScreening({
+      sessionId,
+      user_input: user_input.trim(),
+      language,
+      location,
+      rejected_caregiver_id,
+      selected_caregiver_id,
+      conversation_history
+    });
+
+    res.json(sessionResponse);
+  } catch (err: any) {
+    console.error('Error in /triage/session:', err);
+    res.status(500).json({
+      error: 'Session screening processing error',
+      details: err?.message
+    });
+  }
+};
+app.post('/triage/session', handleSessionTriage);
+app.post('/api/triage/session', handleSessionTriage);
+
+// POST /triage/session/reset
+const handleSessionReset = (req: express.Request, res: express.Response) => {
+  const { sessionId } = req.body || {};
+  if (sessionId) {
+    sessionStore.clearSession(sessionId);
+  }
+  res.json({ success: true, message: `Session ${sessionId || 'all'} reset` });
+};
+app.post('/triage/session/reset', handleSessionReset);
+app.post('/api/triage/session/reset', handleSessionReset);
+
+// POST /triage (Stateless Backward-Compatible Endpoint)
 const handleTriage = (req: express.Request, res: express.Response) => {
   try {
     const { user_input, language = 'auto', location, conversation_history = [] } = req.body || {};
 
-    if (!user_input && typeof user_input !== 'string') {
+    if (!user_input || typeof user_input !== 'string' || !user_input.trim()) {
       res.status(400).json({ error: 'Missing required field: user_input' });
       return;
     }
 
     const triageResult = runFullTriage(
-      user_input,
+      user_input.trim(),
       language,
       location,
-      conversation_history
+      conversation_history,
+      false // live multi-turn adaptive evaluation
     );
 
     // Exact schema response contract
@@ -81,7 +154,6 @@ const handleTriage = (req: express.Request, res: express.Response) => {
       red_flags: triageResult.red_flags,
       reasoning: triageResult.reasoning,
       matched_caregivers: triageResult.matched_caregivers,
-      // Extended fields for enriched UI rendering
       detected_language: triageResult.detected_language,
       confidence: triageResult.confidence,
       suggested_options: triageResult.suggested_options

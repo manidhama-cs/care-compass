@@ -49,7 +49,8 @@ export default function App() {
   const [textSize, setTextSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
 
   // Conversation & Triage State
-  const [currentStage, setCurrentStage] = useState<'initial' | 'emergency' | 'follow_up' | 'result'>('initial');
+  const [sessionId, setSessionId] = useState<string>('');
+  const [currentStage, setCurrentStage] = useState<'initial' | 'emergency' | 'follow_up' | 'result' | 'human_assistance'>('initial');
   const [conversationHistory, setConversationHistory] = useState<ConversationTurn[]>([]);
   const [textInput, setTextInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -68,9 +69,9 @@ export default function App() {
     });
   }, []);
 
-  // Core Triage Dispatcher
+  // Core Session-Aware Triage Dispatcher
   const handleExecuteTriage = async (input: string) => {
-    if (!input || !input.trim()) return;
+    if (!input || !input.trim() || isProcessing) return;
     setIsProcessing(true);
 
     const newHistory: ConversationTurn[] = [
@@ -81,10 +82,11 @@ export default function App() {
     setTextInput('');
 
     try {
-      const res = await fetch('/api/triage', {
+      const res = await fetch('/api/triage/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId: sessionId || undefined,
           user_input: input.trim(),
           language: language === 'Hinglish' ? 'Hinglish' : language,
           location: { lat: 28.54, lng: 77.27 }, // Delhi NCR
@@ -93,18 +95,35 @@ export default function App() {
       });
 
       if (res.ok) {
-        const data: TriageResponse = await res.json();
-        setLatestResponse(data);
+        const data = await res.json();
+        if (data.sessionId) {
+          setSessionId(data.sessionId);
+        }
+
+        const adaptedResponse: TriageResponse = {
+          follow_up_question: data.follow_up_question,
+          care_type: data.care_type,
+          urgency: data.urgency,
+          red_flags: data.red_flags || [],
+          reasoning: data.reasoning,
+          matched_caregivers: data.matched_caregivers || [],
+          detected_language: data.sessionState?.language || language,
+          confidence: data.care_type ? 0.95 : 0.5,
+          suggested_options: data.suggested_options || []
+        };
+        setLatestResponse(adaptedResponse);
 
         // Update language if detected
-        if (data.detected_language && (data.detected_language === 'Hindi' || data.detected_language === 'English' || data.detected_language === 'Hinglish')) {
-          setLanguage(data.detected_language as AppLanguage);
+        if (adaptedResponse.detected_language && (adaptedResponse.detected_language === 'Hindi' || adaptedResponse.detected_language === 'English' || adaptedResponse.detected_language === 'Hinglish')) {
+          setLanguage(adaptedResponse.detected_language as AppLanguage);
         }
 
         // Branch by outcome
-        if (data.care_type === 'emergency_112') {
+        if (data.screeningStatus === 'emergency' || data.care_type === 'emergency_112') {
           setCurrentStage('emergency');
-        } else if (data.follow_up_question) {
+        } else if (data.screeningStatus === 'needs_human_assistance') {
+          setCurrentStage('human_assistance');
+        } else if (data.screeningStatus === 'asking_follow_up' && data.follow_up_question) {
           setFollowUpCount(prev => prev + 1);
           setCurrentStage('follow_up');
         } else {
@@ -118,7 +137,50 @@ export default function App() {
     }
   };
 
-  const handleReset = () => {
+  // Anti-Repetition Caregiver Switch
+  const handleRejectCaregiver = async (caregiverId: string) => {
+    if (!sessionId || isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const res = await fetch('/api/triage/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          user_input: 'Different caregiver requested',
+          rejected_caregiver_id: caregiverId,
+          language
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (latestResponse) {
+          setLatestResponse({
+            ...latestResponse,
+            matched_caregivers: data.matched_caregivers || []
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to rotate caregiver:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (sessionId) {
+      try {
+        await fetch('/api/triage/session/reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+      } catch (e) {
+        // Silent failover
+      }
+    }
+    setSessionId('');
     setCurrentStage('initial');
     setConversationHistory([]);
     setLatestResponse(null);
@@ -338,8 +400,48 @@ export default function App() {
                   reasoning={latestResponse.reasoning}
                   matchedCaregivers={latestResponse.matched_caregivers}
                   onBookCaregiver={handleOpenBooking}
+                  onRejectCaregiver={handleRejectCaregiver}
                   onReset={handleReset}
                 />
+              )}
+
+              {/* Stage E: Human Care Assistance Required (Unclear after question limit) */}
+              {currentStage === 'human_assistance' && (
+                <div className="max-w-xl mx-auto w-full bg-white rounded-3xl border border-slate-200 p-8 shadow-md text-center space-y-4">
+                  <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-2xl font-bold">
+                    💬
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {language === 'Hindi' ? "मानव सहायता केंद्र से संपर्क करें" : "Human Care Coordinator Assistance"}
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {latestResponse?.reasoning || "Your health query requires personalized clinical clarification beyond automated intake. Please speak with our 24/7 care desk."}
+                  </p>
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <a
+                      href="tel:180072662273"
+                      className="w-full sm:w-auto px-6 py-3 rounded-xl bg-teal-800 text-white font-bold text-sm hover:bg-teal-900 transition-colors shadow-xs"
+                    >
+                      📞 Call 1800-SANOCARE (Toll-Free)
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('doctors')}
+                      className="w-full sm:w-auto px-6 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm hover:bg-slate-50 transition-colors"
+                    >
+                      👨‍⚕️ Book Online Doctor
+                    </button>
+                  </div>
+                  <div className="pt-4 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="text-xs text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                    >
+                      Start New Screening
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}

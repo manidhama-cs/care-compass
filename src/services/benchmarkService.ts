@@ -11,49 +11,23 @@
  */
 
 import { TRAINING_DATASET, TrainingSample } from '../data/trainingData.ts';
-import { evaluateSafetyGate } from './safetyDetector.ts';
-import { detectLanguage, processIntake } from './intakeEngine.ts';
-import { classifyTriage } from './triageClassifier.ts';
-import { matchCaregivers } from './caregiverMatcher.ts';
+import { runStatelessTriage } from './screeningStateMachine.ts';
 import { BenchmarkMetrics, TriageResponse } from '../types/triage.ts';
 
 export function runFullTriage(
   userInput: string,
   userLanguage: string = 'auto',
   location?: { lat: number; lng: number },
-  conversationHistory: { role: 'user' | 'assistant' | 'system'; content: string }[] = []
+  conversationHistory: { role: 'user' | 'assistant' | 'system'; content: string }[] = [],
+  isSingleTurnEvaluation: boolean = true
 ): TriageResponse {
-  // Turn 0: Language detection
-  const detectedLang = detectLanguage(userInput, userLanguage);
-
-  // Module 0: Safety Gate (FIRST, on full context)
-  const safetyResult = evaluateSafetyGate(userInput, conversationHistory);
-
-  // Module 1: Smart Intake & Follow-up check
-  const intakeResult = processIntake(userInput, detectedLang, conversationHistory.length);
-
-  // Module 2: Triage Classification
-  const triageResult = classifyTriage(userInput, safetyResult, intakeResult, conversationHistory);
-
-  // Module 3: Caregiver Matching (empty for emergencies or null care_type)
-  const matchResult = matchCaregivers(
-    triageResult.care_type,
+  return runStatelessTriage(
+    userInput,
+    userLanguage,
     location,
-    detectedLang,
-    userInput
+    conversationHistory as any,
+    isSingleTurnEvaluation
   );
-
-  return {
-    follow_up_question: intakeResult.needsFollowUp ? intakeResult.followUpQuestion : null,
-    care_type: triageResult.care_type,
-    urgency: triageResult.urgency,
-    red_flags: safetyResult.redFlags,
-    reasoning: triageResult.reasoning,
-    matched_caregivers: matchResult.matchedCaregivers,
-    detected_language: detectedLang,
-    confidence: triageResult.confidence,
-    suggested_options: intakeResult.suggestedOptions
-  };
 }
 
 /**

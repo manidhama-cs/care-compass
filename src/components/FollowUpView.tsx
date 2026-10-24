@@ -26,6 +26,8 @@ export const FollowUpView: React.FC<FollowUpViewProps> = ({
 }) => {
   const t = I18N[language];
 
+  const [customText, setCustomText] = React.useState('');
+
   // Read question aloud when rendered
   useEffect(() => {
     if (question) {
@@ -116,8 +118,38 @@ export const FollowUpView: React.FC<FollowUpViewProps> = ({
         </div>
       )}
 
+      {/* Type Written Answer Form */}
+      <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (customText.trim()) {
+              onAnswer(customText.trim());
+              setCustomText('');
+            }
+          }}
+          className="flex items-center gap-2 max-w-xl mx-auto"
+        >
+          <input
+            type="text"
+            value={customText}
+            onChange={(e) => setCustomText(e.target.value)}
+            placeholder={language === 'Hindi' ? "अपना उत्तर यहाँ टाइप करें..." : "Type your specific response here..."}
+            disabled={isProcessing}
+            className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+          />
+          <button
+            type="submit"
+            disabled={isProcessing || !customText.trim()}
+            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs shrink-0 cursor-pointer"
+          >
+            Send
+          </button>
+        </form>
+      </div>
+
       {/* Voice Answer Alternative */}
-      <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center">
+      <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center">
         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
           {language === 'Hindi' ? "या बोलकर उत्तर दें:" : "Or speak your answer:"}
         </p>
